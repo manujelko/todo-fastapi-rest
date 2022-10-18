@@ -11,6 +11,8 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
+HTTP_EXCEPTION = HTTPException(status_code=404, detail="Todo not found")
+
 
 def get_db():
     try:
@@ -27,11 +29,24 @@ class Todo(BaseModel):
     complete: bool
 
 
+@app.delete("/{todo_id}")
+async def delete_todo(todo_id: int, db: Session = Depends(get_db)):
+    todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
+
+    if not todo_model:
+        raise HTTP_EXCEPTION
+
+    db.query(models.Todos).filter(models.Todos.id == todo_id).delete()
+    db.commit()
+    return successful_response(200)
+
+
 @app.put("/{todo_id}")
 async def update_todo(todo_id: int, todo: Todo, db: Session = Depends(get_db)):
     todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
+
     if not todo_model:
-        raise HTTPException(status_code=404, detail="Todo not found")
+        raise HTTP_EXCEPTION
 
     todo_model.title = todo.title
     todo_model.description = todo.description
@@ -39,8 +54,7 @@ async def update_todo(todo_id: int, todo: Todo, db: Session = Depends(get_db)):
     todo_model.complete = todo.complete
     db.add(todo_model)
     db.commit()
-
-    return {"status": 200, "transaction": "Successful"}
+    return successful_response(200)
 
 
 @app.post("/")
@@ -52,8 +66,7 @@ async def create_todo(todo: Todo, db: Session = Depends(get_db)):
     todo_model.complete = todo.complete
     db.add(todo_model)
     db.commit()
-
-    return {"status": 201, "transaction": "Successful"}
+    return successful_response(201)
 
 
 @app.get("/")
@@ -64,6 +77,12 @@ async def read_all(db: Session = Depends(get_db)):
 @app.get("/todo/{todo_id}")
 async def read_todo(todo_id: int, db: Session = Depends(get_db)):
     todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
+
     if todo_model:
         return todo_model
-    raise HTTPException(status_code=404, detail="Todo not found")
+
+    raise HTTP_EXCEPTION
+
+
+def successful_response(status: int):
+    return {"status": status, "transaction": "Successful"}
