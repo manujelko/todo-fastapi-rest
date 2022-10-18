@@ -1,4 +1,7 @@
+from typing import Optional
+
 from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from . import models
@@ -15,6 +18,26 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+class Todo(BaseModel):
+    title: str
+    description: Optional[str]
+    priority: int = Field(gt=0, lt=6, description="The priority must be between 1-5")
+    complete: bool
+
+
+@app.post("/")
+async def create_todo(todo: Todo, db: Session = Depends(get_db)):
+    todo_model = models.Todos()
+    todo_model.title = todo.title
+    todo_model.description = todo.description
+    todo_model.priority = todo.priority
+    todo_model.complete = todo.complete
+    db.add(todo_model)
+    db.commit()
+
+    return {"status": 201, "transaction": "Successful"}
 
 
 @app.get("/")
