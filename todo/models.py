@@ -26,4 +26,4 @@ class Todos(Base):
     priority = Column(Integer)
     complete = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("Users", back_populates="users")
+    owner = relationship("Users", back_populates="todos")
