@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -70,6 +70,18 @@ def create_access_token(username: str, user_id: int, expires_delta: Optional[tim
     encode.update({"exp": expire})
 
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+async def get_current_user(token: str = Depends(oauth2_bearer)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        if not username or not user_id:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"username": username, "id": user_id}
+    except JWTError:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @app.post("/create/user")
