@@ -7,6 +7,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from starlette import status
 
 from . import models
 from .db import SessionLocal, engine
@@ -78,10 +79,10 @@ async def get_current_user(token: str = Depends(oauth2_bearer)):
         username: str = payload.get("sub")
         user_id: int = payload.get("id")
         if not username or not user_id:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise get_user_exception()
         return {"username": username, "id": user_id}
     except JWTError:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise get_user_exception()
 
 
 @app.post("/create/user")
@@ -101,7 +102,18 @@ async def create_new_user(create_user: CreateUser, db: Session = Depends(get_db)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise get_token_exception()
     token_expires = timedelta(minutes=20)
     token = create_access_token(user.username, user.id, expires_delta=token_expires)
     return {"token": token}
+
+
+# Exceptions
+def get_user_exception():
+    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials",
+                         headers={"WWW-Authenticate": "Bearer"})
+
+
+def get_token_exception():
+    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password",
+                         headers={"WWW-Authenticate": "Bearer"})
