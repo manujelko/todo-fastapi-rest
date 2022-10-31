@@ -1,10 +1,19 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./todos.db"
+load_dotenv()
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+POSTGRES_USER = os.getenv("POSTGRES_USER", "")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "")
+DB_NAME = os.getenv("DB_NAME", "")
+SQLALCHEMY_DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{DB_NAME}"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
