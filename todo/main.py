@@ -5,14 +5,16 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from . import models
-from .auth import get_current_user, get_user_exception
 from .db import SessionLocal, engine
+from .routers import auth
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
 HTTP_EXCEPTION = HTTPException(status_code=404, detail="Todo not found")
+
+app.include_router(auth.router)
 
 
 def get_db():
@@ -32,10 +34,10 @@ class Todo(BaseModel):
 
 @app.delete("/{todo_id}")
 async def delete_todo(
-    todo_id: int, user: dict = Depends(get_current_user), db: Session = Depends(get_db)
+    todo_id: int, user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
 ):
     if not user:
-        raise get_user_exception()
+        raise auth.get_user_exception()
 
     todo_model = (
         db.query(models.Todos)
@@ -56,11 +58,11 @@ async def delete_todo(
 async def update_todo(
     todo_id: int,
     todo: Todo,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(auth.get_current_user),
     db: Session = Depends(get_db),
 ):
     if not user:
-        raise get_user_exception()
+        raise auth.get_user_exception()
 
     todo_model = (
         db.query(models.Todos)
@@ -83,10 +85,10 @@ async def update_todo(
 
 @app.post("/")
 async def create_todo(
-    todo: Todo, user: dict = Depends(get_current_user), db: Session = Depends(get_db)
+    todo: Todo, user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
 ):
     if not user:
-        raise get_user_exception()
+        raise auth.get_user_exception()
     todo_model = models.Todos()
     todo_model.title = todo.title
     todo_model.description = todo.description
@@ -105,19 +107,19 @@ async def read_all(db: Session = Depends(get_db)):
 
 @app.get("/todo/user")
 async def read_all_by_user(
-    user: dict = Depends(get_current_user), db: Session = Depends(get_db)
+    user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
 ):
     if not user:
-        raise get_user_exception()
+        raise auth.get_user_exception()
     return db.query(models.Todos).filter(models.Todos.owner_id == user.get("id")).all()
 
 
 @app.get("/todo/{todo_id}")
 async def read_todo(
-    todo_id: int, user: dict = Depends(get_current_user), db: Session = Depends(get_db)
+    todo_id: int, user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
 ):
     if not user:
-        raise get_user_exception()
+        raise auth.get_user_exception()
 
     todo_model = (
         db.query(models.Todos)
