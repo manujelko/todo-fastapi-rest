@@ -30,7 +30,9 @@ models.Base.metadata.create_all(bind=engine)
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="token")
 
-router = APIRouter(prefix="/auth", tags=["auth"], responses={401: {"user": "Not authorized"}})
+router = APIRouter(
+    prefix="/auth", tags=["auth"], responses={401: {"user": "Not authorized"}}
+)
 
 
 def get_db():
@@ -61,7 +63,9 @@ def authenticate_user(username: str, password: str, db):
     return user
 
 
-def create_access_token(username: str, user_id: int, expires_delta: Optional[timedelta] = None):
+def create_access_token(
+    username: str, user_id: int, expires_delta: Optional[timedelta] = None
+):
     encode = {"sub": username, "id": user_id}
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -99,7 +103,9 @@ async def create_new_user(create_user: CreateUser, db: Session = Depends(get_db)
 
 
 @router.post("/token")
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise get_token_exception()
@@ -110,10 +116,16 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 # Exceptions
 def get_user_exception():
-    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials",
-                         headers={"WWW-Authenticate": "Bearer"})
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 def get_token_exception():
-    return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password",
-                         headers={"WWW-Authenticate": "Bearer"})
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+        headers={"WWW-Authenticate": "Bearer"},
+    )

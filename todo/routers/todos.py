@@ -8,7 +8,9 @@ from . import auth
 from .. import models
 from ..db import SessionLocal, engine
 
-router = APIRouter(prefix="/todos", tags=["todos"], responses={404: {"description": "Not found"}})
+router = APIRouter(
+    prefix="/todos", tags=["todos"], responses={404: {"description": "Not found"}}
+)
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -32,7 +34,9 @@ class Todo(BaseModel):
 
 @router.delete("/{todo_id}")
 async def delete_todo(
-        todo_id: int, user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
+    todo_id: int,
+    user: dict = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
 ):
     if not user:
         raise auth.get_user_exception()
@@ -54,10 +58,10 @@ async def delete_todo(
 
 @router.put("/{todo_id}")
 async def update_todo(
-        todo_id: int,
-        todo: Todo,
-        user: dict = Depends(auth.get_current_user),
-        db: Session = Depends(get_db),
+    todo_id: int,
+    todo: Todo,
+    user: dict = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
 ):
     if not user:
         raise auth.get_user_exception()
@@ -83,7 +87,9 @@ async def update_todo(
 
 @router.post("/")
 async def create_todo(
-        todo: Todo, user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
+    todo: Todo,
+    user: dict = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
 ):
     if not user:
         raise auth.get_user_exception()
@@ -105,7 +111,7 @@ async def read_all(db: Session = Depends(get_db)):
 
 @router.get("/user")
 async def read_all_by_user(
-        user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
+    user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
 ):
     if not user:
         raise auth.get_user_exception()
@@ -114,7 +120,9 @@ async def read_all_by_user(
 
 @router.get("/{todo_id}")
 async def read_todo(
-        todo_id: int, user: dict = Depends(auth.get_current_user), db: Session = Depends(get_db)
+    todo_id: int,
+    user: dict = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
 ):
     if not user:
         raise auth.get_user_exception()
