@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL,
+    email VARCHAR(200) DEFAULT NULL,
+    username VARCHAR(45) DEFAULT NULL,
+    first_name VARCHAR(45) DEFAULT NULL,
+    last_name VARCHAR(45) DEFAULT NULL,
+    hashed_password VARCHAR(200) DEFAULT NULL,
+    is_active BOOLEAN DEFAULT NULL,
+    PRIMARY KEY (id)
+);

@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS todos;
+
+CREATE TABLE IF NOT EXISTS todos (
+    id SERIAL,
+    title VARCHAR(200) DEFAULT NULL,
+    description VARCHAR(200) DEFAULT NULL,
+    priority INTEGER DEFAULT NULL,
+    complete BOOLEAN DEFAULT NULL,
+    owner_id INTEGER DEFAULT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (owner_id) REFERENCES users(id)
+);
